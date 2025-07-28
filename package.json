@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/prathameshc123/backend_basics#readme",
   "dependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "prettier": "^3.6.2"
   }
 }
