@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "description": "basic backend project",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "nodemon src/index.js"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,8 @@
   "bugs": {
     "url": "https://github.com/prathameshc123/backend_basics/issues"
   },
-  "homepage": "https://github.com/prathameshc123/backend_basics#readme"
+  "homepage": "https://github.com/prathameshc123/backend_basics#readme",
+  "dependencies": {
+    "nodemon": "^3.1.10"
+  }
 }
