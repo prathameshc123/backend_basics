@@ -9,7 +9,7 @@ const connectDB=async ()=>{
         Port:${connectiondbi.connection.port} `
     )
  }catch(err){
-    console.log('mongodb connection error!');
+    console.log('mongodb connection error!',err);
     process.exit(1);
  }
 }
