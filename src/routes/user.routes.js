@@ -3,7 +3,7 @@ import userRegister from "../controllers/user.controller.js";
 import upload from "../middlewares/multer.middlewares.js";
 const router=Router();
 router.route("/register").post(
-    upload.fields(
+    upload.fields([
         {
             name:"Avatar",
             maxCount:1
@@ -11,7 +11,7 @@ router.route("/register").post(
         {
             name:"CoverImage",
             maxCount:1
-        }
+        }]
     )
     ,userRegister);
 export  default router;
