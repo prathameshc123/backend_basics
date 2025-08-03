@@ -296,11 +296,12 @@ export const upadateUserCoverImage=asyncHandler(async(req,res)=>{
 
     const user=await User.findById(req.user?._id);
     const existingCoverImage=user.coverImage;
-    if(!existingCoverImage){
-        throw new ApiError(400,"something went wrong while accessing exisitng cover image");
-    }
-    const oldPublicID=extractPublicIdFromUrl(existingCoverImage);
-   await deleteFromCloudinary(oldPublicID);
+    if (user?.coverImage) {
+  const oldPublicID = extractPublicIdFromUrl(user.coverImage);
+  if (oldPublicID) {
+    await deleteFromCloudinary(oldPublicID);
+  }
+}
 
      const coverImageLocalPath=req.file?.path;
      if(!coverImageLocalPath){
