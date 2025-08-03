@@ -17,13 +17,17 @@ const uploadOnCloudinary = async (localpath) => {
     const response = await cloudinary.uploader.upload(absolutePath, {
       resource_type: "auto",
     });
+    
 
    // console.log("File uploaded to Cloudinary:", response.url);
 
     // ✅ Clean up local file after upload
     await fs.unlink(absolutePath);
 
-    return response;
+    return {
+      url:response.secure_url,
+      public_id:response.public_id
+    };
   } catch (error) {
     console.error("Upload failed:", error);
     try {
@@ -32,5 +36,17 @@ const uploadOnCloudinary = async (localpath) => {
     return null;
   }
 };
+const deleteFromCloudinary = async (publicId) => {
+  try {
+    if (!publicId) return false;
 
-export { uploadOnCloudinary };
+    const response = await cloudinary.uploader.destroy(publicId);
+    // response.result === 'ok' means it was successfully deleted
+    return response;
+  } catch (error) {
+    console.error("Cloudinary deletion failed:", error);
+    return null;
+  }
+};
+
+export { uploadOnCloudinary ,deleteFromCloudinary};

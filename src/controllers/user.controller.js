@@ -1,7 +1,7 @@
 import {asyncHandler} from '../utils/asyncHandler.js';
 import { ApiError } from '../utils/ApiError.js';
 import { User } from '../models/user.model.js';
-import { uploadOnCloudinary } from '../utils/cloudinary.js';
+import { uploadOnCloudinary,deleteFromCloudinary } from '../utils/cloudinary.js';
 import { Apiresponse } from '../utils/ApiResponse.js';
 import jwt from "jsonwebtoken";
 //import cookieParser from 'cookie-parser';
@@ -22,6 +22,17 @@ if (!user) {
         throw new ApiError(500,"something went wrong while generating access and refresh tokens!");
     }
 }
+
+const extractPublicIdFromUrl = (url) => {
+  if (!url) return null;
+
+  const parts = url.split("/");                // split by slashes
+  const filename = parts.pop();                // get last part: "abc123.jpg"
+  const publicId = filename.split(".")[0];     // remove file extension
+
+  return publicId;                             // returns "abc123"
+};
+
 export const userRegister=asyncHandler(async (req,res)=>{
    
 
@@ -200,6 +211,111 @@ export const refreshAccessToken=asyncHandler(async(req,res)=>{
      )
  
    
+})
+
+export const changePassword=asyncHandler(async(req,res)=>{
+    const {oldPassword,newPassword}=req.body;
+    const user=await User.findById(req.user?._id);
+    const validatePassword=await isPasswordCorrect(oldPassword)
+    if(!validatePassword){
+        throw new ApiError(400,"invalid password");
+    }
+    user.password=newPassword;
+    await user.save({validateBeforeSave:false});
+    return res.status(200)
+    .json(
+        200,
+        {},
+        "password changed successfully"
+    )
+})
+export const getCurrentUser=asyncHandler(async(req,res)=>{
+res.json(
+    200,
+    req.user,
+    "current user fetched successfully"
+)
+})
+
+export const modifyAccountDetails=asyncHandler(async(req,res)=>{
+    const {fullName,Email}=req.body;
+    if(!fullName || !Email){
+        throw new ApiError(400,"provide all valid fields for account modification")
+    }
+
+    const user=await User.findByIdAndUpdate(req.user?._id,
+        {
+            $set:{
+                
+                    fullName,
+                    Email
+                
+            }
+        },{
+                    new : true
+                }
+        
+    ).select("-password");
+    res.json(
+        new Apiresponse(
+            200,
+            user,
+            "account details updated"
+        )
+    );
+    
+})
+
+export const upadateUserAvatar=asyncHandler(async(req,res)=>{
+
+    const user=await User.findById(req.user?._id);
+    const existingavatar=user.avatar;
+    if(!existingavatar){
+        throw new ApiError(400,"something went wrong while accessing exisitng avatar");
+    }
+    const oldPublicID=extractPublicIdFromUrl(existingavatar);
+   await deleteFromCloudinary(oldPublicID);
+
+     const avatarLocalPath=req.file?.path;
+     if(!avatarLocalPath){
+        throw new ApiError(400,"avatar file not provided")
+     }
+   const newavatar=  await uploadOnCloudinary(avatarLocalPath);
+    const updatedUser=await User.findByIdAndUpdate(req.user?._id,{$set:{
+        avatar:newavatar.url
+    }},{new:true}).select("-password");
+   
+    
+
+    res.json(
+        new Apiresponse(200,updatedUser,"avatar updated successfully")
+    );
+})
+
+export const upadateUserCoverImage=asyncHandler(async(req,res)=>{
+
+    const user=await User.findById(req.user?._id);
+    const existingCoverImage=user.coverImage;
+    if(!existingCoverImage){
+        throw new ApiError(400,"something went wrong while accessing exisitng cover image");
+    }
+    const oldPublicID=extractPublicIdFromUrl(existingCoverImage);
+   await deleteFromCloudinary(oldPublicID);
+
+     const coverImageLocalPath=req.file?.path;
+     if(!coverImageLocalPath){
+        throw new ApiError(400,"cover image file not provided")
+     }
+   const newCoverImage=  await uploadOnCloudinary(coverImageLocalPath);
+    const updatedUser=await User.findByIdAndUpdate(req.user?._id,{$set:{
+        coverImage:newCoverImage.url
+    }},{new:true}).select("-password");
+   
+    
+
+    res.json(
+        new Apiresponse(200,updatedUser,"cover image updated successfully")
+    );
 })
 
 
