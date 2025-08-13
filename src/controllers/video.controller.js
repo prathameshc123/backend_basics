@@ -1,13 +1,41 @@
 import {Video} from "../models/video.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { Apiresponse } from "../utils/ApiResponse.js";
-
-
+import { asyncHandler } from "../utils/asyncHandler.js";
+import {getVideoDurationInSeconds} from  'get-video-duration';
+import { deleteFromCloudinary,uploadOnCloudinary } from "../utils/cloudinary.js";
 const getAllVideos = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
     //TODO: get all videos based on query, sort, pagination
 })
+const uploadVideo=asyncHandler(async(req,res)=>{
+    const{title,description}=req.body;
+    if(!title || !description){
+    throw new ApiError(400,"video details are missing")
+}
+const videopath=req.file?.path;
+if(!videopath){
+    throw new ApiError(400,"video file missing")
+}
 
+const videourl=await uploadOnCloudinary(videopath);
+if(!videourl?.url){
+    throw new ApiError(400,"cloudinary upload failed")
+}
+const vid_dur=await getVideoDurationInSeconds(videourl.url);
+const video=await Video.create({
+    videoFile:videourl.url,
+    title,
+    description,
+    duration:vid_dur,
+    owner:req.user._id
+})
+
+if(!video){
+    throw new ApiError(400,"something went wrong while uploading video");
+}
+res.json(new Apiresponse(200,video,"video uploaded successfully"));
+})
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params;
     if(!videoId){
@@ -85,3 +113,26 @@ const togglePublishStatus = asyncHandler(async (req, res) => {
         new Apiresponse(200,video,"video publish status toggled")
     );
 })
+const publishVideo=asyncHandler(async(req,res)=>{
+const videoid=req.params;
+if(!videoid){
+    throw new ApiError("invalid videoid");
+}
+const video=await Video.findById(videoid);
+video.ispublished=true;
+await video.save();
+res.json(
+    new Apiresponse(200,video,"video published successfully")
+)
+
+})
+export{
+    uploadVideo,
+    getAllVideos,
+    updateVideo,
+    getVideoById,
+    deleteVideo,
+    publishVideo,
+    togglePublishStatus,
+
+}

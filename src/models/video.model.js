@@ -7,7 +7,7 @@ const videoSchema=mongoose.Schema({
     },
     thumbnail:{
         type:String,
-        required:true
+        default:""
     },
     title:{
         type:String,
@@ -19,15 +19,15 @@ const videoSchema=mongoose.Schema({
     },
     duration:{
         type:Number,
-        required:true
+    
     },
     views:{
         type:Number,
-        required:true
+        default:0
     },
     ispublished:{
         type:Boolean,
-        required:true
+        default:false
     },
     owner:{
         type:Schema.Types.ObjectId,
